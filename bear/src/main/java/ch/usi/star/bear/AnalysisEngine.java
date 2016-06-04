@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -153,15 +152,17 @@ public class AnalysisEngine {
 		return pattern.matcher(url).find();
 	}
 
-	private void saveModel(Model model, String moduleName) throws FileNotFoundException, UnsupportedEncodingException {
+	private void saveModel(Model model, String moduleName) throws FileNotFoundException {
 		File file = new File("temp/model.pm");
+		file.getParentFile().mkdirs();
 		PrintWriter writer = new PrintWriter(file);
 		writer.println(model.generatePrismModel(moduleName));
 		writer.close();
 	}
 
-	private void saveProperty(String property) throws FileNotFoundException, UnsupportedEncodingException {
+	private void saveProperty(String property) throws FileNotFoundException {
 		File file = new File("temp/property.pctl");
+		file.getParentFile().mkdirs();
 		PrintWriter writer = new PrintWriter(file);
 		writer.println(property);
 		writer.close();

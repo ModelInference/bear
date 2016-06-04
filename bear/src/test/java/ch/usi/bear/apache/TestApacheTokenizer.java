@@ -6,6 +6,7 @@ import static org.junit.Assert.fail;
 import java.text.ParseException;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.TimeZone;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -43,6 +44,7 @@ public class TestApacheTokenizer {
 			Date date = tokenizer.extractDate(logLine);
 			Calendar cal = Calendar.getInstance();
 			cal.setTime(date);
+			cal.setTimeZone(TimeZone.getTimeZone("CET"));
 			int month = cal.get(Calendar.MONTH);
 			int day = cal.get(Calendar.DAY_OF_MONTH);
 			int year = cal.get(Calendar.YEAR);
