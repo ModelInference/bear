@@ -1,8 +1,12 @@
 package ch.usi.star.bear.model;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
+
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 
 import ch.usi.star.bear.properties.BearProperties;
 
@@ -166,5 +170,65 @@ public class Model {
 				header += l + " : bool init false;\n";
 		}
 		return header;
+	}
+	
+	// creates a "displayable" JSONObject and adds it to the JSONArray of displayables
+	// returns the object's ID
+	@SuppressWarnings("unchecked")
+	private long createDisplayable(String value, JSONArray otherDisplayables) {
+		long displayableID = AtomicIdCounter.nextId();
+		JSONObject displayable = new JSONObject();
+		displayable.put("id", displayableID);
+		displayable.put("displayableValue", value);
+		otherDisplayables.add(displayable);
+		return displayableID;
+	}
+	
+	@SuppressWarnings("unchecked")
+	public JSONObject generateJSONModel() {
+		JSONObject model = new JSONObject();
+		JSONArray otherDisplayables = new JSONArray();
+		
+		Set<State> states = this.getStates();
+		JSONArray nodes = new JSONArray();
+		// Transitions that share a State are not guaranteed to be pointing to the same State object,
+		// however all State objects with the same toString can be considered the same
+		// HashMap uses the toString method to find the State ID that we are saving to JSON
+		HashMap<State, Long> nodeIdHash = new HashMap<State, Long>();
+		for (State s : states) {
+			JSONObject node = new JSONObject();
+			long nodeId = AtomicIdCounter.nextId();
+			node.put("id", nodeId);
+			nodeIdHash.put(s, nodeId);
+			
+			long displayableID = createDisplayable(s.toString(), otherDisplayables);
+			JSONArray displayableIDs = new JSONArray();
+			displayableIDs.add(displayableID);
+			node.put("displayableIDs", displayableIDs);
+			
+			nodes.add(node);
+		}
+		model.put("nodes", nodes);
+
+
+		Set<Transition> transitions = this.getTransitions();
+		JSONArray edges = new JSONArray();
+		for (Transition t : transitions) {
+			JSONObject edge = new JSONObject();
+			edge.put("id", AtomicIdCounter.nextId());
+			edge.put("srcNodeID", nodeIdHash.get(t.getSource()));
+			edge.put("destNodeID", nodeIdHash.get(t.getDestination()));
+			
+			long displayableID = createDisplayable(t.getProbability() + "", otherDisplayables);
+			JSONArray displayableIDs = new JSONArray();
+			displayableIDs.add(displayableID);
+			edge.put("displayableIDs", displayableIDs);
+			
+			edges.add(edge);
+		}
+		model.put("edges", edges);
+		
+		model.put("otherDisplayables", otherDisplayables);
+		return model;
 	}
 }
