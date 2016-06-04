@@ -6,14 +6,11 @@ import java.util.Set;
 
 public class State {
 
-	private long id;
 	private Label[] labels;
 	private String hashCode;
 	private long reward = 0;
 	
 	public State(Label... labels) throws Exception {
-		this.id = AtomicIdCounter.nextId();
-		
 		if (labels.length == 0)
 			throw new Exception("State needs a least one label!");
 		this.labels = labels;
@@ -25,10 +22,6 @@ public class State {
 			this.reward += s.getReward();
 		}
 		hashCode = sb.toString();
-	}
-	
-	public long getId() {
-		return id;
 	}
 	
 	public Set<Label> getLabels() {

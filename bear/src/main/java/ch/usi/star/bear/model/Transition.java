@@ -2,14 +2,12 @@ package ch.usi.star.bear.model;
 
 public class Transition {
 
-	private long id;
 	private State source;
 	private State destination;
 	private int occurrences;
 	private float probability;
 
 	public Transition(State source, State destination) {
-		this.id = AtomicIdCounter.nextId();
 		this.source = source;
 		this.destination = destination;
 		this.occurrences = 1;
@@ -24,10 +22,6 @@ public class Transition {
 	public Transition(State source, State destination, int occurrences, float probability) {
 		this(source, destination, occurrences);
 		this.probability = probability;
-	}
-	
-	public long getId() {
-		return id;
 	}
 
 	public State getSource() {
