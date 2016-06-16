@@ -28,6 +28,7 @@ public class BearEngine {
 	private final String logConfFile = "res/Log4j.conf";
 	private Logger log = Logger.getLogger(this.getClass().getSimpleName());
 	private int lineCounter = 0;
+	private List<LogLine> logLines;
 
 	public BearEngine(String filtersPackagePrefix, String classifiersPackagePrefix) {
 		this.stateMapper = new StateMapper(filtersPackagePrefix);
@@ -40,9 +41,6 @@ public class BearEngine {
 		AnalysisEngine analisysEngine = new AnalysisEngine(models);
 		return analisysEngine.analyze(scope, property, "Prova", visualize);
 	}
-	
-	
-	
 
 	public void infers(Loader loader) {
 		if (loader == null) {
@@ -51,12 +49,20 @@ public class BearEngine {
 		
 		this.loader = loader;
 		LogLine logLine = null;
+		logLines = new ArrayList<LogLine>();
+		
 		do {
 			log.debug("\t---------BEGIN-----------");
 			try {
 
 				// Fetching a new LogLine from the log file.
 				logLine = this.loader.next();
+				
+				// null is EOF
+				if (logLine != null) {
+					logLines.add(logLine);
+				}
+				
 				// If the fetched line is not null (EOF) and if is not a line to
 				// be stemmed We process it.
 				if (logLine != null && logLine.getRawLine() != "" && !stem(logLine)) {
@@ -71,6 +77,7 @@ public class BearEngine {
 						log.debug("\t---------END-------------");
 						continue;
 					}
+					destination.addLogLine(logLine);
 					log.debug("\tMatched state: " + destination + " for url: " + logLine.getUrl());
 
 					Set<UserClass> classes = this.classMapper.getUserClass(logLine);
@@ -119,7 +126,7 @@ public class BearEngine {
 		for (UserClass uc : trackers.keySet()) {
 			InferenceEngine inferenceEngine = InferenceEngine.getInferenceEngine(uc);
 			Tracker tracker = trackers.get(uc);
-			Model model = inferenceEngine.exportModel(tracker.getCurrentGlobalState(), uc.newUserClassWithOccurrences(tracker.getUserCount()));
+			Model model = inferenceEngine.exportModel(tracker.getCurrentGlobalState(), uc.newUserClassWithOccurrences(tracker.getUserCount()), logLines);
 			models.add(model);
 		}
 		return models;

@@ -18,6 +18,7 @@ import org.apache.commons.exec.ExecuteException;
 import org.apache.commons.exec.PumpStreamHandler;
 import org.apache.log4j.Logger;
 
+import ch.usi.star.bear.loader.LogLine;
 import ch.usi.star.bear.model.Model;
 import ch.usi.star.bear.model.RewardSchema;
 import ch.usi.star.bear.model.State;
@@ -74,38 +75,52 @@ public class AnalysisEngine {
 		return bos.toString();
 	}
 
+	// TODO Use regex to make sure the scope is formatted correctly
+	// As of right now, "  " works for no scope
 	private String[] getScopeElements(String scope) {
 		scope = scope.substring(1, scope.length() - 1);
 		return scope.split("=");
 	}
+	
+	private void addAllStates(HashMap<String, State> statesHash, Set<State> states) {
+		for (State s : states) {
+			if (statesHash.get(s.toString()) != null) {
+				for(LogLine logLine : s.getLogLines()) {
+					statesHash.get(s.toString()).addLogLine(logLine);
+				}
+			} else {
+				statesHash.put(s.toString(), s);
+			}
+		}
+	}
 
-	private Model synthesize(List<Model> models, String scope) throws Exception {
+	public Model synthesize(List<Model> models, String scope) throws Exception {
 		log.debug("\tTotal number of Models: " + models.size());
 
 		if (models.size() < 1)
 			throw new Exception("At least one model is required");
 
-		Set<State> states = new HashSet<State>();
-		Set<Transition> transitions = new HashSet<Transition>();
-
+		// Limit synthesis to the scope, if one is provided
 		String[] elements = this.getScopeElements(scope);
+		HashMap<String, State> statesHash = new HashMap<String, State>();
 		List<Model> validModels = new ArrayList<Model>();
-
 		if (elements.length == 1 && elements[0].equals("")) {
 			for (Model m : models) {
-				states.addAll(m.getStates());
+				addAllStates(statesHash, m.getStates());
 				validModels.add(m);
 			}
 		} else {
-
 			for (Model m : models) {
 				if (elements[0].equals(m.getUserClass().getName()) && this.matches(elements[1], m.getUserClass().getValue())) {
-					states.addAll(m.getStates());
+					addAllStates(statesHash, m.getStates());
 					validModels.add(m);
 				}
 			}
 		}
 		log.debug("\tModels to be synthesized: " + validModels.size());
+
+		Set<State> states = new HashSet<State>(statesHash.values());
+		Set<Transition> transitions = new HashSet<Transition>();
 		HashMap<State, Integer> occurrences = new HashMap<State, Integer>();
 		
 		if(validModels.size()<1){
@@ -143,7 +158,8 @@ public class AnalysisEngine {
 
 		String labelRewardName = BearProperties.getInstance().getProperty(BearProperties.LABELREWARDS);
 		RewardSchema rewardSchema = new RewardSchema(labelRewardName, states);
-		Model model = new Model(states, transitions, null, rewardSchema);
+		// Use first list of LogLines, they all should be the same
+		Model model = new Model(states, transitions, null, rewardSchema, validModels.get(0).getLogLines());
 		return model;
 	}
 

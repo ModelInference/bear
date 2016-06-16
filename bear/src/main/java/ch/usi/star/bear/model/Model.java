@@ -3,11 +3,13 @@ package ch.usi.star.bear.model;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
+import ch.usi.star.bear.loader.LogLine;
 import ch.usi.star.bear.properties.BearProperties;
 
 public class Model {
@@ -16,6 +18,7 @@ public class Model {
 	private Set<Transition> transitions;
 	private RewardSchema rewardSchema;
 	private UserClass userClass;
+	private List<LogLine> logLines;
 
 	public UserClass getUserClass() {
 		return userClass;
@@ -59,6 +62,10 @@ public class Model {
 		}
 		return result;
 	}
+	
+	public List<LogLine> getLogLines() {
+		return logLines;
+	}
 
 	public Model(Set<State> states, Set<Transition> transitions, UserClass uc) {
 		this.states = states;
@@ -66,9 +73,10 @@ public class Model {
 		this.transitions = transitions;
 	}
 
-	public Model(Set<State> states, Set<Transition> transitions, UserClass uc, RewardSchema schema) {
+	public Model(Set<State> states, Set<Transition> transitions, UserClass uc, RewardSchema schema, List<LogLine> logLines) {
 		this(states, transitions, uc);
 		this.rewardSchema = schema;
+		this.logLines = logLines;
 	}
 
 	public int numberOfStates() {
@@ -175,19 +183,43 @@ public class Model {
 	// creates a "displayable" JSONObject and adds it to the JSONArray of displayables
 	// returns the object's ID
 	@SuppressWarnings("unchecked")
-	private long createDisplayable(String value, JSONArray otherDisplayables) {
+	private long createDisplayable(String value, JSONArray displayables) {
 		long displayableID = AtomicIdCounter.nextId();
 		JSONObject displayable = new JSONObject();
 		displayable.put("id", displayableID);
 		displayable.put("displayableValue", value);
-		otherDisplayables.add(displayable);
+		displayables.add(displayable);
 		return displayableID;
+	}
+	
+	// creates a "displayable" JSONObject and adds it to the JSONArray of displayables
+	// returns the object's ID
+	@SuppressWarnings("unchecked")
+	private void createLink(long id1, long id2, JSONArray links) {
+		JSONObject link = new JSONObject();
+		link.put("id1", id1);
+		link.put("id2", id2);
+		links.add(link);
 	}
 	
 	@SuppressWarnings("unchecked")
 	public JSONObject generateJSONModel() {
 		JSONObject model = new JSONObject();
-		JSONArray otherDisplayables = new JSONArray();
+		JSONArray displayables = new JSONArray();
+		JSONArray links = new JSONArray();
+		
+	    JSONArray logStatements = new JSONArray();
+		HashMap<Integer, Long> logStatementIdHash = new HashMap<Integer, Long>();
+	    for (LogLine logLine : logLines) {
+		    JSONObject logStatement = new JSONObject();
+		    long logStatementId = AtomicIdCounter.nextId();
+	    	logStatement.put("id", logStatementId);
+			logStatementIdHash.put(logLine.getLogPosition(), logStatementId);
+		    logStatement.put("text", logLine.getRawLine());
+		    logStatement.put("logPosition", logLine.getLogPosition());
+		    logStatements.add(logStatement);
+	    }
+	    model.put("logStatements", logStatements);
 		
 		Set<State> states = this.getStates();
 		JSONArray nodes = new JSONArray();
@@ -201,10 +233,17 @@ public class Model {
 			node.put("id", nodeId);
 			nodeIdHash.put(s, nodeId);
 			
-			long displayableID = createDisplayable(s.toString(), otherDisplayables);
+			long displayableID = createDisplayable(s.toString(), displayables);
 			JSONArray displayableIDs = new JSONArray();
 			displayableIDs.add(displayableID);
 			node.put("displayableIDs", displayableIDs);
+			
+			for (LogLine logLine : s.getLogLines()) {
+				if(logLine != null) {
+					long logStatementId = logStatementIdHash.get(logLine.getLogPosition());
+					createLink(nodeId, logStatementId, links);
+				}
+			}
 			
 			nodes.add(node);
 		}
@@ -219,7 +258,7 @@ public class Model {
 			edge.put("srcNodeID", nodeIdHash.get(t.getSource()));
 			edge.put("destNodeID", nodeIdHash.get(t.getDestination()));
 			
-			long displayableID = createDisplayable(t.getProbability() + "", otherDisplayables);
+			long displayableID = createDisplayable(t.getProbability() + "", displayables);
 			JSONArray displayableIDs = new JSONArray();
 			displayableIDs.add(displayableID);
 			edge.put("displayableIDs", displayableIDs);
@@ -227,8 +266,9 @@ public class Model {
 			edges.add(edge);
 		}
 		model.put("edges", edges);
-		
-		model.put("otherDisplayables", otherDisplayables);
+
+		model.put("displayables", displayables);
+		model.put("links", links);
 		return model;
 	}
 }

@@ -2,8 +2,10 @@ package ch.usi.star.bear;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
+import ch.usi.star.bear.loader.LogLine;
 import ch.usi.star.bear.model.Label;
 import ch.usi.star.bear.model.Model;
 import ch.usi.star.bear.model.RewardSchema;
@@ -37,7 +39,6 @@ public class InferenceEngine {
 		return inferenceEngine;
 
 	}
-	
 
 	public State getGoalState() {
 		return goalState;
@@ -115,13 +116,13 @@ public class InferenceEngine {
 	}
 
 	@SuppressWarnings("unchecked")
-	public Model exportModel(HashMap<String, State> usersState, UserClass uc) throws Exception {
+	public Model exportModel(HashMap<String, State> usersState, UserClass uc, List<LogLine> logLines) throws Exception {
 		this.finalizeModel(usersState);
 		
 
 		String labelRewardLabel = BearProperties.getInstance().getProperty(BearProperties.LABELREWARDS);
 		RewardSchema rewardSchema = new RewardSchema(labelRewardLabel, states);
-		Model model = new Model((Set<State>) this.states.clone(), (Set<Transition>) this.transitions.clone(), uc, rewardSchema);
+		Model model = new Model((Set<State>) this.states.clone(), (Set<Transition>) this.transitions.clone(), uc, rewardSchema, logLines);
 		return model;
 	}
 

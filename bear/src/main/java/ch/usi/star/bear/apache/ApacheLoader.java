@@ -18,10 +18,12 @@ public class ApacheLoader implements Loader {
 	private File logFile;
 	private ApacheTokenizer tokenizer;
 	private Logger log = Logger.getLogger(this.getClass().getSimpleName());
+	private int logPositionCounter;
 
 	public ApacheLoader(File logFile) {
 		this.logFile = logFile;
 		this.tokenizer = new ApacheTokenizer();
+		this.logPositionCounter = 0;
 	}
 
 	public LogLine next() {
@@ -54,6 +56,7 @@ public class ApacheLoader implements Loader {
 		if(logLine==null){
 			logLine = new LogLine("","","", new Date(), "","");
 		}
+		logLine.setLogPosition(logPositionCounter++);
 		return logLine;
 	}
 

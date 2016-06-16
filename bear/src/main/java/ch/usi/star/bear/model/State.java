@@ -1,14 +1,19 @@
 package ch.usi.star.bear.model;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+
+import ch.usi.star.bear.loader.LogLine;
 
 public class State {
 
 	private Label[] labels;
 	private String hashCode;
 	private long reward = 0;
+	private List<LogLine> logLines;
 	
 	public State(Label... labels) throws Exception {
 		if (labels.length == 0)
@@ -22,6 +27,7 @@ public class State {
 			this.reward += s.getReward();
 		}
 		hashCode = sb.toString();
+		this.logLines = new ArrayList<LogLine>();
 	}
 	
 	public Set<Label> getLabels() {
@@ -30,6 +36,15 @@ public class State {
 	
 	public long getReward() {
 		return reward;
+	}
+	
+	public List<LogLine> getLogLines() {
+		return logLines;
+	}
+	
+	public void addLogLine(LogLine logLine) {
+		System.out.println(logLine);
+		this.logLines.add(logLine);
 	}
 
 	@Override

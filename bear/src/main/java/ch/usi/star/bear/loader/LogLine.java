@@ -15,6 +15,8 @@ public class LogLine {
 	private String agent;
 
 	private String referrer;
+	
+	private int logPosition;
 
 	public LogLine(String rawLine, String ip, String url, Date date, String referrer, String agent) {
 		super();
@@ -80,5 +82,13 @@ public class LogLine {
 
 	public void setRawLine(String rawLine) {
 		this.rawLine = rawLine;
+	}
+	
+	public int getLogPosition() {
+		return logPosition;
+	}
+
+	public void setLogPosition(int logPosition) {
+		this.logPosition = logPosition;
 	}
 }

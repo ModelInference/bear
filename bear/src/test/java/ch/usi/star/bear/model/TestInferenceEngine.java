@@ -87,7 +87,8 @@ public class TestInferenceEngine {
 			this.inferenceEngine.signalTransition(due, tre);
 			
 			UserClass uc = new UserClass("", "", 0);
-			this.inferenceEngine.exportModel(usersState, uc);
+			// TODO add testing for logLines
+			this.inferenceEngine.exportModel(usersState, uc, null);
 			
 			assertTrue(this.inferenceEngine.numberOfTransitions() == 5);
 			assertTrue(this.inferenceEngine.containsTransition(new Transition(this.inferenceEngine.getInitState(), uno)));

@@ -2,9 +2,11 @@ package ch.usi.star.bear.example;
 import java.io.File;
 import java.util.List;
 
+import ch.usi.star.bear.AnalysisEngine;
 import ch.usi.star.bear.BearEngine;
 import ch.usi.star.bear.apache.ApacheLoader;
 import ch.usi.star.bear.model.Model;
+import ch.usi.star.bear.visualization.BearVisualizer;
 
 public class Example {
 
@@ -18,11 +20,11 @@ public class Example {
 		try {
 			bearEngine.infers(apacheLoader);
 			List<Model> models = bearEngine.exportModels();
-//			System.out.println(models.get(0).generatePrismModel("Prova"));
-			
-			
-			System.out.println(bearEngine.analyze("{userAgent=Mozilla}", "P =?[(F Quattro) & (!(F Cinque))]", models, false));
-			
+			AnalysisEngine analisysEngine = new AnalysisEngine(models);
+			Model model = analisysEngine.synthesize(models, "  ");
+			System.out.println(model.generatePrismModel("Prova"));
+			System.out.println(model.generateJSONModel().toJSONString());
+			System.out.println(bearEngine.analyze("{userAgent=Mozilla}", "P =?[(F Quattro) & (!(F Cinque))]", models, true));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
