@@ -223,15 +223,9 @@ public class Model {
 		
 		Set<State> states = this.getStates();
 		JSONArray nodes = new JSONArray();
-		// Transitions that share a State are not guaranteed to be pointing to the same State object,
-		// however all State objects with the same toString can be considered the same
-		// HashMap uses the toString method to find the State ID that we are saving to JSON
-		HashMap<State, Long> nodeIdHash = new HashMap<State, Long>();
 		for (State s : states) {
 			JSONObject node = new JSONObject();
-			long nodeId = AtomicIdCounter.nextId();
-			node.put("id", nodeId);
-			nodeIdHash.put(s, nodeId);
+			node.put("id", s.getId());
 			
 			long displayableID = createDisplayable(s.toString(), displayables);
 			JSONArray displayableIDs = new JSONArray();
@@ -241,7 +235,7 @@ public class Model {
 			for (LogLine logLine : s.getLogLines()) {
 				if(logLine != null) {
 					long logStatementId = logStatementIdHash.get(logLine.getLogPosition());
-					createLink(nodeId, logStatementId, links);
+					createLink(s.getId(), logStatementId, links);
 				}
 			}
 			
@@ -254,9 +248,9 @@ public class Model {
 		JSONArray edges = new JSONArray();
 		for (Transition t : transitions) {
 			JSONObject edge = new JSONObject();
-			edge.put("id", AtomicIdCounter.nextId());
-			edge.put("srcNodeID", nodeIdHash.get(t.getSource()));
-			edge.put("destNodeID", nodeIdHash.get(t.getDestination()));
+			edge.put("id", t.getId());
+			edge.put("srcNodeID", t.getSource().getId());
+			edge.put("destNodeID", t.getDestination().getId());
 			
 			long displayableID = createDisplayable(t.getProbability() + "", displayables);
 			JSONArray displayableIDs = new JSONArray();

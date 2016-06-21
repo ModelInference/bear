@@ -6,7 +6,6 @@ import ch.usi.star.bear.AnalysisEngine;
 import ch.usi.star.bear.BearEngine;
 import ch.usi.star.bear.apache.ApacheLoader;
 import ch.usi.star.bear.model.Model;
-import ch.usi.star.bear.visualization.BearVisualizer;
 
 public class Example {
 

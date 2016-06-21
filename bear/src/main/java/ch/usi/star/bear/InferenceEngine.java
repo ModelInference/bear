@@ -18,7 +18,7 @@ public class InferenceEngine {
 	
 	private static HashMap<UserClass, InferenceEngine> inferenceMap = new HashMap<UserClass, InferenceEngine>();
 
-	private HashSet<State> states;
+	private HashMap<String, State> states;
 	private HashSet<Transition> transitions;
 	private HashMap<State, Long> stateOccurrences;
 	private State initState;
@@ -49,7 +49,7 @@ public class InferenceEngine {
 	}
 
 	public InferenceEngine() {
-		this.states = new HashSet<State>();
+		this.states = new HashMap<String, State>();
 		this.transitions = new HashSet<Transition>();
 		this.stateOccurrences = new HashMap<State, Long>();
 		try {
@@ -59,8 +59,8 @@ public class InferenceEngine {
 			e.printStackTrace();
 		}
 
-		this.states.add(initState);
-		this.states.add(goalState);
+		this.states.put(initState.toString(), initState);
+		this.states.put(goalState.toString(), goalState);
 	}
 
 	public int getTransitionOccurrences(Transition transition) {
@@ -76,7 +76,11 @@ public class InferenceEngine {
 		if (destination.equals(this.goalState) || source.equals(this.goalState) || destination.equals(this.initState))
 			throw new Exception("cannot add transitions to/from the GOAL/START states");
 		// insert destination state (it may be new)
-		states.add(destination);
+		if (states.containsKey(destination.toString())) {
+			states.get(destination.toString()).addLogLines(destination.getLogLines());
+		} else {
+			states.put(destination.toString(), destination);
+		}
 		Transition t = this.createOrUpdateTransition(source, destination);
 		return t.getOccurrences();
 	}
@@ -118,11 +122,9 @@ public class InferenceEngine {
 	@SuppressWarnings("unchecked")
 	public Model exportModel(HashMap<String, State> usersState, UserClass uc, List<LogLine> logLines) throws Exception {
 		this.finalizeModel(usersState);
-		
-
 		String labelRewardLabel = BearProperties.getInstance().getProperty(BearProperties.LABELREWARDS);
-		RewardSchema rewardSchema = new RewardSchema(labelRewardLabel, states);
-		Model model = new Model((Set<State>) this.states.clone(), (Set<Transition>) this.transitions.clone(), uc, rewardSchema, logLines);
+		RewardSchema rewardSchema = new RewardSchema(labelRewardLabel, states.values());
+		Model model = new Model((Set<State>) new HashSet<State>(this.states.values()).clone(), (Set<Transition>) this.transitions.clone(), uc, rewardSchema, logLines);
 		return model;
 	}
 
@@ -135,7 +137,7 @@ public class InferenceEngine {
 	private void computeProbabilities() throws Exception {
 		// saving all outgoing transition for every state
 		HashSet<Transition> newTransitions = new HashSet<Transition>();
-		for (State s : states) {
+		for (State s : states.values()) {
 			float totalOccurencies = 0;
 			Set<Transition> outgoing = new HashSet<Transition>();
 			for (Transition t : transitions) {
@@ -165,9 +167,9 @@ public class InferenceEngine {
 			this.createOrUpdateTransition(lastState, goalState);
 		}
 
-		for (State source : states) {
+		for (State source : states.values()) {
 			boolean childLess = true;
-			for (State destination : states) {
+			for (State destination : states.values()) {
 				// Goal and Initial States are not childless
 				if (destination.equals(this.goalState) | destination.equals(this.initState)) {
 					continue;
@@ -195,7 +197,7 @@ public class InferenceEngine {
 	}
 
 	public boolean containsState(State state) {
-		return states.contains(state);
+		return states.containsKey(state.toString());
 	}
 
 	public boolean containsTransition(Transition transition) {

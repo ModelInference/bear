@@ -6,12 +6,14 @@ public class Transition {
 	private State destination;
 	private int occurrences;
 	private float probability;
+	private long id;
 
 	public Transition(State source, State destination) {
 		this.source = source;
 		this.destination = destination;
 		this.occurrences = 1;
 		this.probability=0f;
+		this.id = AtomicIdCounter.nextId();
 	}
 	
 	public Transition(State source, State destination, int occurrences) {
@@ -38,6 +40,10 @@ public class Transition {
 	
 	public float getProbability() {
 		return probability;
+	}
+	
+	public long getId() {
+		return id;
 	}
 
 	public boolean equals(Transition transition) {

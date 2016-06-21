@@ -14,6 +14,7 @@ public class State {
 	private String hashCode;
 	private long reward = 0;
 	private List<LogLine> logLines;
+	private long id = -1;
 	
 	public State(Label... labels) throws Exception {
 		if (labels.length == 0)
@@ -26,10 +27,11 @@ public class State {
 			sb.append(s.toString());
 			this.reward += s.getReward();
 		}
-		hashCode = sb.toString();
+		this.hashCode = sb.toString();
 		this.logLines = new ArrayList<LogLine>();
+		this.id = AtomicIdCounter.nextId();
 	}
-	
+
 	public Set<Label> getLabels() {
 		return new HashSet<Label>(Arrays.asList(labels));
 	}
@@ -43,8 +45,17 @@ public class State {
 	}
 	
 	public void addLogLine(LogLine logLine) {
-		System.out.println(logLine);
 		this.logLines.add(logLine);
+	}
+	
+	public void addLogLines(List<LogLine> newLogLines) {
+		for (LogLine logLine : newLogLines) {
+			this.logLines.add(logLine);
+		}
+	}
+
+	public long getId() {
+		return id;
 	}
 
 	@Override
@@ -84,5 +95,5 @@ public class State {
 		}
 		return sb.toString();
 	}
-
+	
 }
